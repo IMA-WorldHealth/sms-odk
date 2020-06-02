@@ -3,7 +3,20 @@ const fs = require('fs');
 const xlsx = require('xlsx');
 const path = require('path');
 const debug = require('debug')('imaworldhealth:sms-odk');
+const util = require('util');
 const Request = require('./request.js');
+
+const logger = fs.createWriteStream('debug.log', { flags: 'a', encoding: 'utf8' });
+
+// make the debug logger log out to
+debug.log = (...args) => {
+  logger.write(`${util.format(...args).trim()}\n`);
+};
+
+// make sure we close out the stream with a writeable stream.
+process.on('exit', (code) => {
+  logger.end(`process exiting with code ${code}.`);
+});
 
 // save sms locally
 const save = require('./save');
@@ -15,13 +28,13 @@ function rm(str, txt) {
 
 // formating servey collected data
 function formatSMS(str, sep, columnMap) {
-  const fist = str.indexOf(sep) + 1;
+  const first = str.indexOf(sep) + 1;
 
   const obj = {
-    form_name: str.substr(0, fist - 1),
+    form_name: str.substr(0, first - 1),
   };
 
-  const strng = str.substr(fist, str.length);
+  const strng = str.substr(first, str.length);
 
   const array = strng.split(sep);
 
@@ -47,7 +60,6 @@ function formatSMS(str, sep, columnMap) {
   return obj;
 }
 
-
 try {
   // get the file path
   const filePath = process.argv.slice(2)[0];
@@ -65,7 +77,6 @@ try {
 
   debug(`separator is "${sep}".`);
   debug(`split sms into ${sms.length} parts.`);
-
 
   const xlsxPath = path.resolve(__dirname, 'survey.xlsx');
   debug(`reading survey from ${xlsxPath}`);
