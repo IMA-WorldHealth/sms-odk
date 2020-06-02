@@ -6,7 +6,7 @@ const debug = require('debug')('imaworldhealth:sms-odk');
 const util = require('util');
 const Request = require('./request.js');
 
-const logger = fs.createWriteStream('debug.log', { flags: 'a', encoding: 'utf8' });
+const logger = fs.createWriteStream(process.env.LOGFILE, { flags: 'a', encoding: 'utf8' });
 
 // make the debug logger log out to
 debug.log = (...args) => {
