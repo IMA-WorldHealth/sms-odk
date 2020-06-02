@@ -2,7 +2,6 @@ const request = require('request-promise-native');
 const q = require('q');
 
 class Request {
-
   constructor(url) {
     this.url = url;
   }
@@ -12,11 +11,11 @@ class Request {
     request({
       url: params.url || this.url,
       method: 'POST',
-      body : params.data,
+      body: params.data,
       headers: {
         'Content-Type': 'application/json',
-      }
-    }, function (error, response, body) {
+      },
+    }, (error, response, body) => {
       if (!error) {
         return deferred.resolve(body);
       }
@@ -34,9 +33,9 @@ class Request {
       method: 'GET',
       body: params.data,
       headers: {
-        'Content-Type': 'application/json'
-      }
-    }, function (error, response, body) {
+        'Content-Type': 'application/json',
+      },
+    }, (error, response, body) => {
       if (!error) {
         return deferred.resolve(body);
       }

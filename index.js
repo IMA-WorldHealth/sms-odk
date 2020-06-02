@@ -1,8 +1,7 @@
 
-
 const fs = require('fs');
-try {
 
+try {
   const xlsx = require('xlsx');
   const path = require('path');
   const Request = require('./request.js');
@@ -22,10 +21,10 @@ try {
 
   // get column names from the xlsx survey
   const workbook = xlsx.readFile(path.resolve(__dirname, './survey.xlsx'));
-  const xlData = xlsx.utils.sheet_to_json(workbook.Sheets['survey']);
+  const xlData = xlsx.utils.sheet_to_json(workbook.Sheets.survey);
 
-  let columnMap = {};
-  xlData.forEach(c => {
+  const columnMap = {};
+  xlData.forEach((c) => {
     columnMap[c.compact_tag] = c.name;
   });
 
@@ -55,7 +54,6 @@ try {
         if (!obj[newKey]) {
           obj[newKey] = value;
         } else {
-
           // handle repete question keys
           const isArray = Array.isArray(obj[newKey]);
           if (isArray) {
@@ -64,11 +62,9 @@ try {
             obj[newKey] = [obj[newKey], value];
           }
         }
-
       }
     }
     return obj;
-
   }
 
   // SMS txt into json
@@ -85,16 +81,14 @@ try {
     Report: rm(sms[10], 'Report: '),
     Alphabet: rm(sms[11], 'Alphabet: '),
     Length: rm(sms[12], 'Length: '),
-    data: formatSMS(sms[14])
-  }
+    data: formatSMS(sms[14]),
+  };
 
   // save sms locally
   save.saveSMS(data);
 
-  req = new Request(`https://odk2bhima.pepkits.org/depot_movement`);
+  req = new Request('https://odk2bhima.pepkits.org/depot_movement');
   req.postData(data);
-
-}
-catch (xs) {
+} catch (xs) {
   fs.writeFileSync(path.resolve(__dirname, './test.json'), JSON.stringfy(xs));
 }
