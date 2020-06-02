@@ -1,71 +1,87 @@
-
 const fs = require('fs');
+const xlsx = require('xlsx');
+const path = require('path');
+const debug = require('debug')('sms-odk');
+const Request = require('./request.js');
+
+// save sms locally
+const save = require('./save');
+
+// remove a portion of a text
+function rm(str, txt) {
+  return str.replace(txt, '');
+}
+
+// formating servey collected data
+function formatSMS(str, sep, columnMap) {
+  const fist = str.indexOf(sep) + 1;
+
+  const obj = {
+    form_name: str.substr(0, fist - 1),
+  };
+
+  const strng = str.substr(fist, str.length);
+
+  const array = strng.split(sep);
+
+  for (let i = 0; i < array.length; i += 2) {
+    // use compact_tag if the name is not found in the xlsx survey
+    const newKey = columnMap[array[i]] || array[i];
+
+    const value = array[i + 1] || '';
+    if (newKey) {
+      if (!obj[newKey]) {
+        obj[newKey] = value;
+      } else {
+        // handle repete question keys
+        const isArray = Array.isArray(obj[newKey]);
+        if (isArray) {
+          obj[newKey].push(value);
+        } else {
+          obj[newKey] = [obj[newKey], value];
+        }
+      }
+    }
+  }
+  return obj;
+}
+
 
 try {
-  const xlsx = require('xlsx');
-  const path = require('path');
-  const Request = require('./request.js');
-
-  // save sms locally
-  const save = require('./save');
-
   // get the file path
   const filePath = process.argv.slice(2)[0];
 
+  debug(`called sms-odk with ${filePath}.`);
+
   // reading the log file
   const t = fs.readFileSync(filePath, { encoding: 'utf-8' });
+
+  debug(`file read into memory.  Length is ${t.length} characters`);
 
   // sms separator
   const sep = '~';
   const sms = t.split('\n');
 
+  debug(`separator is "${sep}".`);
+  debug(`split sms into ${sms.length} parts.`);
+
+
+  const xlsxPath = path.resolve(__dirname, 'survey.xlsx');
+  debug(`reading survey from ${xlsxPath}`);
+
   // get column names from the xlsx survey
-  const workbook = xlsx.readFile(path.resolve(__dirname, './survey.xlsx'));
+  const workbook = xlsx.readFile(xlsxPath);
   const xlData = xlsx.utils.sheet_to_json(workbook.Sheets.survey);
 
   const columnMap = {};
-  xlData.forEach((c) => {
-    columnMap[c.compact_tag] = c.name;
-  });
+  xlData
+    .forEach((c) => {
+      columnMap[c.compact_tag] = c.name;
+    });
 
-  // remove a portion of a text
-  function rm(str, txt) {
-    return str.replace(txt, '');
-  }
+  const keys = Object.keys(columnMap);
 
-  // formating servey collected data
-  function formatSMS(str) {
-    const fist = str.indexOf(sep) + 1;
-
-    const obj = {
-      form_name: str.substr(0, fist - 1),
-    };
-
-    str = str.substr(fist, str.length);
-
-    const _array = str.split(sep);
-
-    for (let i = 0; i < _array.length; i += 2) {
-      // use compact_tag if the name is not found in the xlsx survey
-      const newKey = columnMap[_array[i]] || _array[i];
-
-      const value = _array[i + 1] || '';
-      if (newKey) {
-        if (!obj[newKey]) {
-          obj[newKey] = value;
-        } else {
-          // handle repete question keys
-          const isArray = Array.isArray(obj[newKey]);
-          if (isArray) {
-            obj[newKey].push(value);
-          } else {
-            obj[newKey] = [obj[newKey], value];
-          }
-        }
-      }
-    }
-    return obj;
-  }
+  debug(`Created column map with keys: ${keys.join(',')}.`);
 
   // SMS txt into json
   const data = {
@@ -81,14 +97,17 @@ try {
     Report: rm(sms[10], 'Report: '),
     Alphabet: rm(sms[11], 'Alphabet: '),
     Length: rm(sms[12], 'Length: '),
-    data: formatSMS(sms[14]),
+    data: formatSMS(sms[14], sep, columnMap),
   };
+
+  debug(`parsed the data as follows:${JSON.stringify(data)}`);
 
   // save sms locally
   save.saveSMS(data);
 
-  req = new Request('https://odk2bhima.pepkits.org/depot_movement');
+  debug('saved SMS. Submitting to server...');
+  const req = new Request('https://odk2bhima.pepkits.org/depot_movement');
   req.postData(data);
 } catch (xs) {
-  fs.writeFileSync(path.resolve(__dirname, './test.json'), JSON.stringfy(xs));
+  fs.writeFileSync(path.resolve(__dirname, './test.json'), JSON.stringify(xs));
 }

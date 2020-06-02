@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "better-sqlite3": "^7.0.1",
+    "debug": "^4.1.1",
     "moment": "^2.26.0",
     "q": "^1.5.1",
     "request": "^2.88.2",
