@@ -1,7 +1,8 @@
+require('dotenv').config();
 const fs = require('fs');
 const xlsx = require('xlsx');
 const path = require('path');
-const debug = require('debug')('sms-odk');
+const debug = require('debug')('imaworldhealth:sms-odk');
 const Request = require('./request.js');
 
 // save sms locally
