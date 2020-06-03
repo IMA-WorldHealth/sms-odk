@@ -4,7 +4,7 @@ const fs = require('fs');
 const xlsx = require('xlsx');
 const path = require('path');
 const debug = require('./lib/debug');
-const Request = require('./lib/request.js');
+const request = require('./lib/request');
 const save = require('./lib/save');
 
 const {
@@ -57,69 +57,71 @@ function formatSMS(str, sep, columnMap) {
   return obj;
 }
 
-try {
+(async () => {
+  try {
   // get the file path
-  const [filePath] = process.argv.slice(2);
+    const [filePath] = process.argv.slice(2);
 
-  debug(`called sms-odk with ${filePath}.`);
+    debug(`called sms-odk with ${filePath}.`);
 
-  // reading the log file
-  const t = fs.readFileSync(filePath, { encoding: 'utf-8' });
+    // reading the log file
+    const t = fs.readFileSync(filePath, { encoding: 'utf-8' });
 
-  debug(`file read into memory.  Length is ${t.length} characters`);
+    debug(`file read into memory.  Length is ${t.length} characters`);
 
-  // sms separator
-  const sep = '~';
-  const sms = t.split('\n');
+    // sms separator
+    const sep = '~';
+    const sms = t.split('\n');
 
-  debug(`separator is "${sep}".`);
-  debug(`split sms into ${sms.length} parts.`);
+    debug(`separator is "${sep}".`);
+    debug(`split sms into ${sms.length} parts.`);
 
-  const xlsxPath = path.resolve(__dirname, SURVEY_FILE);
-  debug(`reading survey from ${xlsxPath}.`);
+    const xlsxPath = path.resolve(__dirname, SURVEY_FILE);
+    debug(`reading survey from ${xlsxPath}.`);
 
-  // get column names from the xlsx survey
-  const workbook = xlsx.readFile(xlsxPath);
-  const xlData = xlsx.utils.sheet_to_json(workbook.Sheets.survey);
+    // get column names from the xlsx survey
+    const workbook = xlsx.readFile(xlsxPath);
+    const xlData = xlsx.utils.sheet_to_json(workbook.Sheets.survey);
 
-  const columnMap = {};
-  xlData
-    .forEach((c) => {
-      columnMap[c.compact_tag] = c.name;
-    });
+    const columnMap = {};
+    xlData
+      .forEach((c) => {
+        columnMap[c.compact_tag] = c.name;
+      });
 
-  const keys = Object.keys(columnMap);
+    const keys = Object.keys(columnMap);
 
-  debug(`Created column map with keys: ${keys.join(',')}.`);
+    debug(`Created column map with keys: ${keys.join(',')}.`);
 
-  // SMS txt into json
-  const data = {
-    From: rm(sms[1], 'From: '),
-    From_TOA: rm(sms[2], 'From_TOA: '),
-    From_SMSC: rm(sms[3], 'From_SMSC: '),
-    Sent: rm(sms[4], 'Sent: '),
-    Received: rm(sms[5], 'Received: '),
-    Subject: rm(sms[6], 'Subject: '),
-    Modem: rm(sms[7], 'Modem: '),
-    IMSI: rm(sms[8], 'IMSI: '),
-    IMEI: rm(sms[9], 'IMEI: '),
-    Report: rm(sms[10], 'Report: '),
-    Alphabet: rm(sms[11], 'Alphabet: '),
-    Length: rm(sms[12], 'Length: '),
-    data: formatSMS(sms[14], sep, columnMap),
-  };
+    // SMS txt into json
+    const data = {
+      From: rm(sms[1], 'From: '),
+      From_TOA: rm(sms[2], 'From_TOA: '),
+      From_SMSC: rm(sms[3], 'From_SMSC: '),
+      Sent: rm(sms[4], 'Sent: '),
+      Received: rm(sms[5], 'Received: '),
+      Subject: rm(sms[6], 'Subject: '),
+      Modem: rm(sms[7], 'Modem: '),
+      IMSI: rm(sms[8], 'IMSI: '),
+      IMEI: rm(sms[9], 'IMEI: '),
+      Report: rm(sms[10], 'Report: '),
+      Alphabet: rm(sms[11], 'Alphabet: '),
+      Length: rm(sms[12], 'Length: '),
+      data: formatSMS(sms[14], sep, columnMap),
+    };
 
-  debug(`parsed the data as follows:${JSON.stringify(data)}`);
+    debug(`parsed the data as follows:${JSON.stringify(data)}`);
 
-  // save sms locally
-  save.saveSMS(data);
+    // save sms locally
+    save.saveSMS(data);
 
-  debug('saved SMS. Submitting to server...');
+    debug('saved SMS. Submitting to server...');
 
-  const req = new Request(SERVER_URL);
+    await request(SERVER_URL, data);
 
-  req.postData(data);
-} catch (error) {
-  debug('an error occured in the process');
-  debug('error: %O', error);
-}
+    debug('done.');
+  } catch (error) {
+    debug('an error occured in the process');
+    debug('error: %O', error);
+  }
+})();
