@@ -16,10 +16,10 @@ process.on('exit', (code) => {
 
 
 (async () => {
-  try {
   // get the file path
-    const [filePath] = process.argv.slice(2);
+  const [filePath] = process.argv.slice(2);
 
+  try {
     debug(`called sms-odk with ${filePath}.`);
 
     const data = parser.parseSMSFile(filePath);
@@ -35,7 +35,8 @@ process.on('exit', (code) => {
 
     debug('done.');
   } catch (error) {
-    debug('an error occured in the process');
+    debug('error: an error occured in the process');
     debug('error: %O', error);
+    debug('error: sms file was: %s', filePath);
   }
 })();
