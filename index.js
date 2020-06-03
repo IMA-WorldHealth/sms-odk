@@ -1,12 +1,16 @@
 require('dotenv').config();
+
 const fs = require('fs');
 const xlsx = require('xlsx');
 const path = require('path');
-const debug = require('debug')('imaworldhealth:sms-odk');
 const util = require('util');
-const Request = require('./request.js');
+const debug = require('./lib/debug');
+const Request = require('./lib/request.js');
+const save = require('./lib/save');
 
 const logger = fs.createWriteStream(process.env.LOGFILE, { flags: 'a', encoding: 'utf8' });
+
+const { SERVER_URL } = process.env;
 
 // make the debug logger log out to
 debug.log = (...args) => {
@@ -18,8 +22,6 @@ process.on('exit', (code) => {
   logger.end(`process exiting with code ${code}.`);
 });
 
-// save sms locally
-const save = require('./save');
 
 // remove a portion of a text
 function rm(str, txt) {
@@ -62,7 +64,7 @@ function formatSMS(str, sep, columnMap) {
 
 try {
   // get the file path
-  const filePath = process.argv.slice(2)[0];
+  const [filePath] = process.argv.slice(2);
 
   debug(`called sms-odk with ${filePath}.`);
 
@@ -118,7 +120,9 @@ try {
   save.saveSMS(data);
 
   debug('saved SMS. Submitting to server...');
-  const req = new Request('https://odk2bhima.pepkits.org/depot_movement');
+
+  const req = new Request(SERVER_URL);
+
   req.postData(data);
 } catch (xs) {
   fs.writeFileSync(path.resolve(__dirname, './test.json'), JSON.stringify(xs));
