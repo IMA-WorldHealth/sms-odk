@@ -3,26 +3,18 @@ require('dotenv').config();
 const fs = require('fs');
 const xlsx = require('xlsx');
 const path = require('path');
-const util = require('util');
 const debug = require('./lib/debug');
 const Request = require('./lib/request.js');
 const save = require('./lib/save');
-
-const logger = fs.createWriteStream(process.env.LOGFILE, { flags: 'a', encoding: 'utf8' });
 
 const {
   SERVER_URL,
   SURVEY_FILE,
 } = process.env;
 
-// make the debug logger log out to
-debug.log = (...args) => {
-  logger.write(`${util.format(...args).trim()}\n`);
-};
-
-// make sure we close out the stream with a writeable stream.
+// log the exit of the code
 process.on('exit', (code) => {
-  logger.end(`process exiting with code ${code}.`);
+  debug(`process exiting with code ${code}.`);
 });
 
 
@@ -127,6 +119,7 @@ try {
   const req = new Request(SERVER_URL);
 
   req.postData(data);
-} catch (xs) {
-  fs.writeFileSync(path.resolve(__dirname, './test.json'), JSON.stringify(xs));
+} catch (error) {
+  debug('an error occured in the process');
+  debug('error: %O', error);
 }
