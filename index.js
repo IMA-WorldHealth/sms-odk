@@ -14,7 +14,6 @@ process.on('exit', (code) => {
   debug(`process exiting with code ${code}.`);
 });
 
-
 (async () => {
   // get the file path
   const [filePath] = process.argv.slice(2);
