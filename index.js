@@ -34,8 +34,8 @@ process.on('exit', (code) => {
 
     debug('done.');
   } catch (error) {
-    debug('error: an error occured in the process');
+    debug('error: an error occured in the process.');
     debug('error: %O', error);
-    debug('error: sms file was: %s', filePath);
+    debug(`error: sms file was: ${filePath}`);
   }
 })();
