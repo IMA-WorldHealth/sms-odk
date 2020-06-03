@@ -10,7 +10,10 @@ const save = require('./lib/save');
 
 const logger = fs.createWriteStream(process.env.LOGFILE, { flags: 'a', encoding: 'utf8' });
 
-const { SERVER_URL } = process.env;
+const {
+  SERVER_URL,
+  SURVEY_FILE,
+} = process.env;
 
 // make the debug logger log out to
 debug.log = (...args) => {
@@ -80,8 +83,8 @@ try {
   debug(`separator is "${sep}".`);
   debug(`split sms into ${sms.length} parts.`);
 
-  const xlsxPath = path.resolve(__dirname, 'survey.xlsx');
-  debug(`reading survey from ${xlsxPath}`);
+  const xlsxPath = path.resolve(__dirname, SURVEY_FILE);
+  debug(`reading survey from ${xlsxPath}.`);
 
   // get column names from the xlsx survey
   const workbook = xlsx.readFile(xlsxPath);
