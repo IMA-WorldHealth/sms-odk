@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path').resolve(__dirname, '.env');
+require('dotenv').config({ path });
 
 const debug = require('./lib/debug');
 const request = require('./lib/request');
