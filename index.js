@@ -26,11 +26,14 @@ process.on('exit', (code) => {
     debug('finished parsing SMS file.');
 
     // save sms locally
-    save.saveSMS(data);
+    save.insert(data.hash, data);
 
     debug('saved SMS. Submitting to server...');
 
     await request(SERVER_URL, data);
+
+    debug('sms submitted to server.  Recording posted in database.');
+    save.update(data.hash);
 
     debug('done.');
   } catch (error) {
