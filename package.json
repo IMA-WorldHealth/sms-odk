@@ -9,7 +9,7 @@
     "dotenv": "^8.2.0",
     "moment": "^2.26.0",
     "node-fetch": "^2.6.1",
-    "object-hash": "^2.0.3",
+    "object-hash": "^2.1.1",
     "q": "^1.5.1",
     "request": "^2.88.2",
     "uuid": "^8.3.0",
