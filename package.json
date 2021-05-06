@@ -6,7 +6,7 @@
   "dependencies": {
     "better-sqlite3": "^7.1.0",
     "debug": "^4.1.1",
-    "dotenv": "^8.2.0",
+    "dotenv": "^9.0.0",
     "moment": "^2.26.0",
     "node-fetch": "^2.6.1",
     "object-hash": "^2.0.3",
