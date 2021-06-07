@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "better-sqlite3": "^7.1.0",
+    "better-sqlite3": "^7.4.1",
     "debug": "^4.1.1",
     "dotenv": "^8.2.0",
     "moment": "^2.26.0",
